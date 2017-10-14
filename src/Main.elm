@@ -1,9 +1,11 @@
 module Main exposing (..)
 
+import AnimationFrame exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (checked, class, classList, placeholder, src, type_, value)
 import Html.Events exposing (keyCode, on, onClick, onInput, targetValue)
 import Json.Decode as Json
+import Time exposing (Time, second)
 
 
 listItem item =
@@ -23,6 +25,10 @@ onKeyDown tagger =
     on "keydown" (Json.map tagger keyCode)
 
 
+onAnimationEnd msg =
+    Html.Events.on "animationend" (Json.succeed msg)
+
+
 
 ---- MODEL ----
 
@@ -32,12 +38,12 @@ type alias Todo =
 
 
 type alias Model =
-    { todoText : String, todos : List Todo }
+    { todoText : String, todos : List Todo, shouldShake : Bool }
 
 
 init : ( Model, Cmd Msg )
 init =
-    ( { todoText = "", todos = [] }, Cmd.none )
+    ( { todoText = "", todos = [], shouldShake = False }, Cmd.none )
 
 
 
@@ -50,6 +56,7 @@ type Msg
     | OnAddTodo Int
     | OnRemoveTodos
     | OnSelectAll
+    | RemoveShake
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -62,7 +69,9 @@ update msg model =
             ( { model | todoText = newTodo }, Cmd.none )
 
         OnAddTodo key ->
-            ( if key == 13 || key == 0 then
+            ( if key == 13 && model.todoText == "" then
+                { model | shouldShake = True }
+              else if key == 13 then
                 addTodo model
               else
                 model
@@ -74,6 +83,9 @@ update msg model =
 
         OnSelectAll ->
             ( { model | todos = List.map (\item -> { item | isChecked = True }) model.todos }, Cmd.none )
+
+        RemoveShake ->
+            ( { model | shouldShake = False }, Cmd.none )
 
 
 updateIsChecked : Int -> Todo -> Todo
@@ -96,7 +108,7 @@ view : Model -> Html Msg
 view model =
     section [ classList [ ( "container", True ), ( "container-padding", True ) ] ]
         [ h1 [ class "centered-header" ] [ text "Todo list" ]
-        , input [ type_ "text", onInput OnTypeTodo, value model.todoText, onKeyDown OnAddTodo, placeholder "Add your todo!" ] []
+        , div [ classList [ ( "shake", model.shouldShake ), ( "animated", model.shouldShake ) ], onAnimationEnd RemoveShake ] [ input [ type_ "text", onInput OnTypeTodo, value model.todoText, onKeyDown OnAddTodo, placeholder "Add your todo!" ] [] ]
         , renderList model
         , div [] [ button [ class "button", onClick OnRemoveTodos ] [ text "Remove completed tasks" ] ]
         , div [] [ button [ class "button button-outline", onClick OnSelectAll ] [ text "Select all" ] ]
