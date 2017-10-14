@@ -2,7 +2,7 @@ module Main exposing (..)
 
 import AnimationFrame exposing (..)
 import Html exposing (..)
-import Html.Attributes exposing (checked, class, classList, placeholder, src, type_, value)
+import Html.Attributes exposing (..)
 import Html.Events exposing (keyCode, on, onClick, onInput, targetValue)
 import Json.Decode as Json
 import Time exposing (Time, second)
@@ -10,8 +10,17 @@ import Time exposing (Time, second)
 
 listItem item =
     div []
-        [ input [ type_ "checkbox", onClick (OnToggleCheck item.id), checked item.isChecked ] []
-        , label [ classList [ ( "label-inline", True ), ( "todo-item", True ) ] ] [ text item.text ]
+        [ input
+            [ type_ "checkbox"
+            , onClick (OnToggleCheck item.id)
+            , checked item.isChecked
+            ]
+            []
+        , label
+            [ classList
+                [ ( "label-inline", True ), ( "todo-item", True ) ]
+            ]
+            [ text item.text ]
         ]
 
 
@@ -63,7 +72,14 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         OnToggleCheck index ->
-            ( { model | todos = List.map (updateIsChecked index) model.todos }, Cmd.none )
+            ( { model
+                | todos =
+                    List.map
+                        (updateIsChecked index)
+                        model.todos
+              }
+            , Cmd.none
+            )
 
         OnTypeTodo newTodo ->
             ( { model | todoText = newTodo }, Cmd.none )
@@ -79,10 +95,24 @@ update msg model =
             )
 
         OnRemoveTodos ->
-            ( { model | todos = List.filter (\item -> item.isChecked == False) model.todos }, Cmd.none )
+            ( { model
+                | todos =
+                    List.filter
+                        (\item -> item.isChecked == False)
+                        model.todos
+              }
+            , Cmd.none
+            )
 
         OnSelectAll ->
-            ( { model | todos = List.map (\item -> { item | isChecked = True }) model.todos }, Cmd.none )
+            ( { model
+                | todos =
+                    List.map
+                        (\item -> { item | isChecked = True })
+                        model.todos
+              }
+            , Cmd.none
+            )
 
         RemoveShake ->
             ( { model | shouldShake = False }, Cmd.none )
@@ -97,7 +127,18 @@ updateIsChecked index item =
 
 
 addTodo model =
-    { model | todos = List.reverse (model.todos ++ [ { id = List.length model.todos, text = model.todoText, isChecked = False } ]), todoText = "" }
+    { model
+        | todos =
+            List.reverse
+                (model.todos
+                    ++ [ { id = List.length model.todos
+                         , text = model.todoText
+                         , isChecked = False
+                         }
+                       ]
+                )
+        , todoText = ""
+    }
 
 
 
@@ -108,10 +149,35 @@ view : Model -> Html Msg
 view model =
     section [ classList [ ( "container", True ), ( "container-padding", True ) ] ]
         [ h1 [ class "centered-header" ] [ text "Todo list" ]
-        , div [ classList [ ( "shake", model.shouldShake ), ( "animated", model.shouldShake ) ], onAnimationEnd RemoveShake ] [ input [ type_ "text", onInput OnTypeTodo, value model.todoText, onKeyDown OnAddTodo, placeholder "Add your todo!" ] [] ]
+        , div
+            [ classList
+                [ ( "shake", model.shouldShake )
+                , ( "animated", model.shouldShake )
+                ]
+            , onAnimationEnd RemoveShake
+            ]
+            [ input
+                [ type_ "text"
+                , onInput OnTypeTodo
+                , value model.todoText
+                , onKeyDown OnAddTodo
+                , placeholder "Add your todo!"
+                ]
+                []
+            ]
         , renderList model
-        , div [] [ button [ class "button", onClick OnRemoveTodos ] [ text "Remove completed tasks" ] ]
-        , div [] [ button [ class "button button-outline", onClick OnSelectAll ] [ text "Select all" ] ]
+        , div []
+            [ button
+                [ class "button"
+                , onClick OnRemoveTodos
+                ]
+                [ text "Remove completed tasks" ]
+            ]
+        , div []
+            [ button
+                [ class "button button-outline", onClick OnSelectAll ]
+                [ text "Select all" ]
+            ]
         ]
 
 
