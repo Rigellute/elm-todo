@@ -1,32 +1,14 @@
 module Main exposing (..)
 
-import AnimationFrame exposing (..)
+import App.State
+import App.Tasks
+import App.TodoComponent as TodoComponent
+import App.Types exposing (Model, Msg(..))
+import App.UserComponent as UserComponent
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (keyCode, on, onClick, onInput, targetValue)
 import Json.Decode as Json
-import Time exposing (Time, second)
-
-
-listItem item =
-    div []
-        [ input
-            [ type_ "checkbox"
-            , onClick (OnToggleCheck item.id)
-            , checked item.isChecked
-            ]
-            []
-        , label
-            [ classList
-                [ ( "label-inline", True ), ( "todo-item", True ) ]
-            ]
-            [ text item.text ]
-        ]
-
-
-renderList model =
-    div []
-        (List.map (\item -> listItem item) model.todos)
 
 
 onKeyDown : (Int -> msg) -> Attribute msg
@@ -42,103 +24,15 @@ onAnimationEnd msg =
 ---- MODEL ----
 
 
-type alias Todo =
-    { id : Int, text : String, isChecked : Bool }
-
-
-type alias Model =
-    { todoText : String, todos : List Todo, shouldShake : Bool }
-
-
 init : ( Model, Cmd Msg )
 init =
-    ( { todoText = "", todos = [], shouldShake = False }, Cmd.none )
-
-
-
----- UPDATE ----
-
-
-type Msg
-    = OnToggleCheck Int
-    | OnTypeTodo String
-    | OnAddTodo Int
-    | OnRemoveTodos
-    | OnSelectAll
-    | RemoveShake
-
-
-update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
-    case msg of
-        OnToggleCheck index ->
-            ( { model
-                | todos =
-                    List.map
-                        (updateIsChecked index)
-                        model.todos
-              }
-            , Cmd.none
-            )
-
-        OnTypeTodo newTodo ->
-            ( { model | todoText = newTodo }, Cmd.none )
-
-        OnAddTodo key ->
-            ( if key == 13 && model.todoText == "" then
-                { model | shouldShake = True }
-              else if key == 13 then
-                addTodo model
-              else
-                model
-            , Cmd.none
-            )
-
-        OnRemoveTodos ->
-            ( { model
-                | todos =
-                    List.filter
-                        (\item -> item.isChecked == False)
-                        model.todos
-              }
-            , Cmd.none
-            )
-
-        OnSelectAll ->
-            ( { model
-                | todos =
-                    List.map
-                        (\item -> { item | isChecked = True })
-                        model.todos
-              }
-            , Cmd.none
-            )
-
-        RemoveShake ->
-            ( { model | shouldShake = False }, Cmd.none )
-
-
-updateIsChecked : Int -> Todo -> Todo
-updateIsChecked index item =
-    if item.id == index then
-        { item | isChecked = not item.isChecked }
-    else
-        item
-
-
-addTodo model =
-    { model
-        | todos =
-            List.reverse
-                (model.todos
-                    ++ [ { id = List.length model.todos
-                         , text = model.todoText
-                         , isChecked = False
-                         }
-                       ]
-                )
-        , todoText = ""
-    }
+    ( { todoText = ""
+      , todos = []
+      , shouldShake = False
+      , users = []
+      }
+    , App.Tasks.getUsers
+    )
 
 
 
@@ -147,7 +41,7 @@ addTodo model =
 
 view : Model -> Html Msg
 view model =
-    section [ classList [ ( "container", True ), ( "container-padding", True ) ] ]
+    section [ class "container", class "container-padding" ]
         [ h1 [ class "centered-header" ] [ text "Todo list" ]
         , div
             [ classList
@@ -165,19 +59,23 @@ view model =
                 ]
                 []
             ]
-        , renderList model
-        , div []
+        , fieldset [] [ TodoComponent.renderTodosFromList model ]
+        , div [ class "button-container" ]
             [ button
                 [ class "button"
                 , onClick OnRemoveTodos
                 ]
                 [ text "Remove completed tasks" ]
-            ]
-        , div []
-            [ button
+            , button
                 [ class "button button-outline", onClick OnSelectAll ]
                 [ text "Select all" ]
             ]
+        , h4 [] [ text "Collaborators" ]
+        , div []
+            (List.map
+                UserComponent.render
+                model.users
+            )
         ]
 
 
@@ -190,6 +88,6 @@ main =
     Html.program
         { view = view
         , init = init
-        , update = update
+        , update = App.State.update
         , subscriptions = always Sub.none
         }

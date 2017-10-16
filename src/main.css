@@ -1,11 +1,57 @@
+/* Larger than mobile screen */
+@media (min-width: 40.0rem) {
+  .container-padding {
+    padding-left: 7.5em;
+    padding-right: 7.5em;
+  }
+}
+
+/* Larger than tablet screen */
+@media (min-width: 80.0rem) {}
+
+/* Larger than desktop screen */
+@media (min-width: 120.0rem) {}
+
+.button-container {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
 .container-padding {
-  padding: 2em 7.5em;
+  padding-top: 2em;
+}
+
+.checkbox {
+  margin: 1rem 0;
 }
 
 .todo-item {
-  padding: 1em 0;
+  border-radius: 0.4rem;
+  border: 0.1rem solid #d1d1d1;
+  cursor: pointer;
+  padding: 0 1rem;
+}
+
+.todo-text {
+  padding-left: 1.7em;
 }
 
 .centered-header {
   text-align: center;
+}
+
+.avatar {
+  border-radius: 50%;
+  height: 50px;
+}
+
+.user-container {
+  display: flex;
+  align-items: center;
+  margin: 10px 0;
+}
+
+.user-name {
+  margin-left: 10px;
 }
